@@ -1,0 +1,46 @@
+John Feltrup
+CSE 517: Natural Language Processing
+A1: Language Modeling
+
+(i): How the Language Model works
+
+This is an ngram language model. Specifically, it constructions 1-5 grams of the data, and interpolates
+the models to the the probability of a unicode character given a history. The largest ngram goes up to 5, which carries
+ some risk of the model jsut repeating the training text, but because we are modeling at the character level and not the
+ word level, I believe the model will be better at generating actual words. The hyperparameters used to interpolate
+the ngram models were trained on a held out portion of the training set, a dev set that was about 10% of the dataset.
+
+(ii): Description of the Data trained on
+
+I trained my model on "The UMass Global English on Twitter Dataset". It contains 10,502 annotated tweets from 130 countries.
+While it is called the "English on Twitter" dataset, it does contain a variety of languages. The tweets are annotated for whether
+they are in english or not, along with some other properties
+
+I chose this dataset for two primary reasons. Firstly it is multilingual. There would be no point in training a model in
+the BMP if it only contained a single language. The second reason is twitter is a source of varied information. It is not
+the same kind of text you find in a book, but it many contain more of what may be daily used natural language.
+
+(iii): External tools and libraries
+
+* The nltk package (For natural language processing in Python)
+
+Citation:
+Bird, Steven, Edward Loper and Ewan Klein (2009), Natural Language Processing with Python. O’Reilly Media Inc.
+
+* The Twitter Dataset
+
+Citation:
+Blodgett, Su Lin, Johnny Wei, and Brendan O'Connor.
+"A Dataset and Classifier for Recognizing Social Media English."
+Proceedings of the 3rd Workshop on Noisy User-generated Text. 2017.
+
+* The pandas package (for processing the data in python)
+
+Citation:
+Wes McKinney. Data Structures for Statistical Computing in Python, Proceedings of the 9th Python in Science Conference,
+51-56 (2010) (publisher link)
+
+(iv): Miscellaneous/Going Forward
+Overall, it is not the most complicated model in the world, but a solid first attempt at language modeling.
+Looking forward to the project, I would want to use a neural model, as well as a much bigger and more diverse
+dataset. I haven't work much with neural libraries, but that makes it a good goal for the project at the end.

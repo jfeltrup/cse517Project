@@ -1,0 +1,16 @@
+// Added the character 統 to the history
+// Added the character 一 to the history
+// Added the character 碼 to the history
+-14.8570298599
+K// Generated a character! Probability of generation -11.0825895603
+// Added the character  to the history
+// Added the character u to the history
+// Added the character n to the history
+// Added the character i to the history
+// Added the character c to the history
+// Added the character o to the history
+// Added the character d to the history
+// Added the character e to the history
+// Added the character NEWLINE to the history
+-8.61884064657
+y// Generated a character! Probability of generation -8.65728372559
