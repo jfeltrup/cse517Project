@@ -30,6 +30,8 @@ pentaAlpha = 0.3
 def main():
     print "Start of program"
 
+    #buildVocabulary()
+    #processData()
     createModel()
 
     # Use this function for testing the Unicode 10 vocabulary
@@ -43,9 +45,13 @@ def processData():
     f = open("dataset_april.txt")
     sentences = []
     line = f.readline()
+    count = 0
     while line:
         sentences.append(unicode(line, "utf-8"))
         line = f.readline()
+        count += 1;
+        if count == 100000:
+            break;
     return sentences
 
 # Builds the ngram models based on the training data, and save the 1-5 grams in python pickle files
@@ -130,23 +136,36 @@ def createModel():
 # Returns a list of all the unicode characters that are a part of our valid vocabulary
 # The characters are read from the blocks in Blocks.txt
 # Lines in Blocks.txt that start with a # will be ignored
+
+# TODO: Change this function to use DerivedNames.txt
 def buildVocabulary():
     total_vocab = []
-    # Now read the file
-    with open("Blocks.txt") as f:
+    # First, we have to manually add control characters 0-31 (they are not a part of the named characters file)
+    for i in range(0, 32):
+        total_vocab.append(unichr(i))
+    # Next read the named characters from the file
+    with open("DerivedNames.txt") as f:
         line = f.readline()
         while line:
             if line.startswith("#") or line.startswith("\n"):
                 line = f.readline()
             else:
                 split1 = line.split(";")
-                split2 = split1[0].split("..")
-                lower = int(split2[0], 16)
-                upper = int(split2[1], 16)
-                for i in range(lower, upper+1):
-                    total_vocab.append(i)
-
+                split1 = split1[0].split(" ")
+                # There are two cases, either a single character or a range
+                # This first case is the range of values
+                if ".." in split1[0]:
+                    split2 = split1[0].split("..")
+                    lower = int(split2[0], 16)
+                    upper = int(split2[1], 16)
+                    for i in range(lower, upper + 1):
+                        total_vocab.append(unichr(i))
+                else: # The second case is a single value
+                    number = int(split1[0], 16)
+                    total_vocab.append(unichr(number))
                 line = f.readline()
+        print total_vocab[0]
+        print len(total_vocab)
         return total_vocab
 
 # NOTE: This function is not set up for the Project Dataset. It will not work until modified
