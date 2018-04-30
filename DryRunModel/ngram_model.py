@@ -37,23 +37,15 @@ def main():
 
     print "End of program"
 
-# TODO: Change this function to read from the project Database
 # Reads in the training Data from a file, and converts it into a list of unicode sentences
 # This list of sentences is returned
 def processData():
-    # This is reading from the data.
-    data = pd.read_table("umass_global_english_tweets-v1/all_annotated.tsv")
-
-    # This is the row count to use for the model
-    rowCount = data.shape[0]
-    # This is the row count to use for tuning the parameters
-    #rowCount = 9452
-
+    f = open("dataset_april.txt")
     sentences = []
-    for i in range(0, rowCount):
-        sentences.append(unicode(data.iloc[i][3], "utf-8"))
-
-    # Then return the sentences
+    line = f.readline()
+    while line:
+        sentences.append(unicode(line, "utf-8"))
+        line = f.readline()
     return sentences
 
 # Builds the ngram models based on the training data, and save the 1-5 grams in python pickle files
@@ -147,15 +139,10 @@ def buildVocabulary():
             if line.startswith("#") or line.startswith("\n"):
                 line = f.readline()
             else:
-                print line
                 split1 = line.split(";")
-                print split1
                 split2 = split1[0].split("..")
-                print split2
-
                 lower = int(split2[0], 16)
                 upper = int(split2[1], 16)
-
                 for i in range(lower, upper+1):
                     total_vocab.append(i)
 
