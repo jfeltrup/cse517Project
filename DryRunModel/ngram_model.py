@@ -28,6 +28,7 @@ pentaAlpha = 0.3
 
 def main():
     print ("Start of program")
+
     createModel()
     # Use this function for testing the Unicode 10 vocabulary
     #testAllUnicode10()
