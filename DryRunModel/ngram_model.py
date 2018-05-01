@@ -20,6 +20,9 @@ import unicodedata
 
 import pandas as pd
 
+# This variable controls whether the vocab is built from DerivedNames or Blocks.txt
+USE_NAMED = True
+
 # Hyperparameters to test for interpolating the model
 uniAlpha = 0.2
 biAlpha = 0.1
@@ -30,7 +33,7 @@ pentaAlpha = 0.3
 def main():
     print ("Start of program")
 
-    #buildVocabulary()
+    #buildVocabulary(USE_NAMED)
     #processData()
     createModel()
 
@@ -58,7 +61,7 @@ def processData():
 # Builds the ngram models based on the training data, and save the 1-5 grams in python pickle files
 def createModel():
     # To see how vocabulary is built, see buildVocabulary function
-    vocabulary = buildVocabulary()
+    vocabulary = buildVocabulary(USE_NAMED)
     # Init the 1-5 grams
     unigrams = []
     bigrams = []
@@ -138,38 +141,54 @@ def createModel():
 
 
 # Returns a list of all the unicode characters that are a part of our valid vocabulary
-# The characters are read from the blocks in Blocks.txt
-# Lines in Blocks.txt that start with a # will be ignored
-
-# TODO: Change this function to use DerivedNames.txt
-def buildVocabulary():
-    total_vocab = []
-    # First, we have to manually add control characters 0-31 (they are not a part of the named characters file)
-    for i in range(0, 32):
-        total_vocab.append(chr(i))
-    # Next read the named characters from the file
-    with open("DerivedNames.txt") as f:
-        line = f.readline()
-        while line:
-            if line.startswith("#") or line.startswith("\n"):
-                line = f.readline()
-            else:
-                split1 = line.split(";")
-                split1 = split1[0].split(" ")
-                # There are two cases, either a single character or a range
-                # This first case is the range of values
-                if ".." in split1[0]:
+# If "useNamed" is true, uses DerivedNames.txt
+# If "useNamed" is false, uses Blocks.txt
+# Both text files skip lines that start with "#" or "\n"
+def buildVocabulary(useNamed):
+    if useNamed:
+        total_vocab = []
+        # First, we have to manually add control characters 0-31 (they are not a part of the named characters file)
+        for i in range(0, 32):
+            total_vocab.append(chr(i))
+        # Next read the named characters from the file
+        with open("DerivedNames.txt") as f:
+            line = f.readline()
+            while line:
+                if line.startswith("#") or line.startswith("\n"):
+                    line = f.readline()
+                else:
+                    split1 = line.split(";")
+                    split1 = split1[0].split(" ")
+                    # There are two cases, either a single character or a range
+                    # This first case is the range of values
+                    if ".." in split1[0]:
+                        split2 = split1[0].split("..")
+                        lower = int(split2[0], 16)
+                        upper = int(split2[1], 16)
+                        for i in range(lower, upper + 1):
+                            total_vocab.append(chr(i))
+                    else: # The second case is a single value
+                        number = int(split1[0], 16)
+                        total_vocab.append(chr(number))
+                    line = f.readline()
+            # For testing purposes, manually adding 7F
+            return total_vocab
+    else:
+        total_vocab = []
+        with open("Blocks.txt") as f:
+            line = f.readline()
+            while line:
+                if line.startswith("#") or line.startswith("\n"):
+                    line = f.readline()
+                else:
+                    split1 = line.split(";")
                     split2 = split1[0].split("..")
                     lower = int(split2[0], 16)
                     upper = int(split2[1], 16)
-                    for i in range(lower, upper + 1):
-                        total_vocab.append(chr(i))
-                else: # The second case is a single value
-                    number = int(split1[0], 16)
-                    total_vocab.append(chr(number))
-                line = f.readline()
-        # For testing purposes, manually adding 7F
-        return total_vocab
+                    for i in range(lower, upper+1):
+                        total_vocab.append(i)
+                    line = f.readline()
+            return total_vocab
 
 # NOTE: This function is not set up for the Project Dataset. It will not work until modified
 # TODO: replace the dev set in this function with the Project Dataset. Will not work until change is made
