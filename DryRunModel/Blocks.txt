@@ -182,7 +182,7 @@ D7B0..D7FF; Hangul Jamo Extended-B
 #D800..DB7F; High Surrogates
 #DB80..DBFF; High Private Use Surrogates
 #DC00..DFFF; Low Surrogates
-#E000..F8FF; Private Use Area
+E000..F8FF; Private Use Area
 F900..FAFF; CJK Compatibility Ideographs
 FB00..FB4F; Alphabetic Presentation Forms
 FB50..FDFF; Arabic Presentation Forms-A
