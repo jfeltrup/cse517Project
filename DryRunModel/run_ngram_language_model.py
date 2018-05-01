@@ -29,11 +29,11 @@ def main(argv):
     pentagramProbs = pickle.load(open("pentagram_pickle.p", "rb"))
 
     # Now, set up the history and reading from standard input
-    history = [unichr(2), unichr(2), unichr(2), unichr(2)]
+    history = [chr(2), chr(2), chr(2), chr(2)]
 
     # Read in the input, make sure to treat it as unicode
     line = sys.stdin.readline()
-    line = unicode(line, "utf-8")
+    #line = unicode(line, "utf-8")
     splitLine = list(line)
     index = 0
     command = splitLine[index]
@@ -46,14 +46,14 @@ def main(argv):
             # Special case, if the character is a newline, need to update the input line
             if nextUni == "\n":
                 line = sys.stdin.readline()
-                line = unicode(line, "utf-8")
+                #line = unicode(line, "utf-8")
                 splitLine = list(line)
                 index = -1
             #print nextUni
 
             # If it is the stop symbol, clear the history
-            if nextUni == unichr(3):
-                history = [unichr(2), unichr(2), unichr(2), unichr(2)]
+            if nextUni == chr(3):
+                history = [chr(2), chr(2), chr(2), chr(2)]
             else: # Otherwise append the character to the history
                 del history[0]
                 history.append(nextUni)
@@ -62,7 +62,7 @@ def main(argv):
             charToPrint = nextUni
             if nextUni == "\n":
                 charToPrint = u"NEWLINE"
-            charToPrint = charToPrint.encode('utf-8')
+            # charToPrint = charToPrint.encode('utf-8')
             sys.stdout.write("// Added the character " + charToPrint + " to the history")
             sys.stdout.write("\n")
 
@@ -76,7 +76,7 @@ def main(argv):
             # Special case, if the character is a newline, need to update the input line
             if nextUni == "\n":
                 line = sys.stdin.readline()
-                line = unicode(line, "utf-8")
+                #line = unicode(line, "utf-8")
                 splitLine = list(line)
                 index = -1
 
@@ -159,7 +159,7 @@ def main(argv):
             charToPrint = nextUni
             if nextUni == "\n":
                 charToPrint = u"NEWLINE"
-            charToPrint = charToPrint.encode('utf-8')
+            #charToPrint = charToPrint.encode('utf-8')
             sys.stdout.write(charToPrint)
             sys.stdout.write(u"// Generated a character! Probability of generation " + str(logProb))
             sys.stdout.write(u"\n")
@@ -177,7 +177,7 @@ def main(argv):
         else:
             # It is not a valid command
             sys.stdout.write("Command unrecognized. Exiting Program\n")
-            print command
+            print (command)
             break
 
 # Calculate the log probability of the given character given the history. Uses all ngram probabilites
@@ -209,14 +209,14 @@ def calculateLogLikelihood(nextUni, history, unigramProbs, bigramProbs, trigramP
     totalProb = (uniAlpha * prob1) + (biAlpha * prob2) + (triAlpha * prob3) + (quadAlpha * prob4) + (pentaAlpha * prob5)
     # Take the log base 2 of that probability
     #print nextUni.encode('utf-8')
-    if (totalProb == 0):
-        print "ERROR: A probability is 0"
-        print "The offending character is:"
-        print nextUni.encode('utf-8')
-        print "This is also the unicode value for it"
-        print repr(nextUni.encode('utf-8'))
-        print "This is the character as an int"
-        print int(nextUni)
+    # if (totalProb == 0):
+    #     print "ERROR: A probability is 0"
+    #     print "The offending character is:"
+    #     print nextUni.encode('utf-8')
+    #     print "This is also the unicode value for it"
+    #     print repr(nextUni.encode('utf-8'))
+    #     print "This is the character as an int"
+    #     print int(nextUni)
     logProb = math.log(totalProb, 2)
     return logProb
 

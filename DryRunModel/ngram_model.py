@@ -28,7 +28,7 @@ quadAlpha = 0.3
 pentaAlpha = 0.3
 
 def main():
-    print "Start of program"
+    print ("Start of program")
 
     #buildVocabulary()
     #processData()
@@ -37,7 +37,7 @@ def main():
     # Use this function for testing the Unicode 10 vocabulary
     #testAllUnicode10()
 
-    print "End of program"
+    print ("End of program")
 
 # Reads in the training Data from a file, and converts it into a list of unicode sentences
 # This list of sentences is returned
@@ -47,10 +47,11 @@ def processData():
     line = f.readline()
     count = 0
     while line:
-        sentences.append(unicode(line, "utf-8"))
+        #sentences.append(unicode(line, "utf-8"))
+        sentences.append(line)
         line = f.readline()
         count += 1;
-        if count == 100000:
+        if count == 10000:
             break;
     return sentences
 
@@ -80,8 +81,8 @@ def createModel():
         totalSymbolCount += len(split)
 
         # Consistent padded version
-        split = list(pad_sequence(split, 2, pad_right=True, right_pad_symbol=unichr(3)))
-        split = list(pad_sequence(split, 5, pad_left=True, left_pad_symbol=unichr(2)))
+        split = list(pad_sequence(split, 2, pad_right=True, right_pad_symbol=chr(3)))
+        split = list(pad_sequence(split, 5, pad_left=True, left_pad_symbol=chr(2)))
 
         unigrams += split
         bigrams += list(ngrams(split, 2))
@@ -129,6 +130,9 @@ def createModel():
     pickle.dump(quadgramProb, open("quadgram_pickle.p", "wb"))
     pickle.dump(pentagramProb, open("pentagram_pickle.p", "wb"))
 
+    #print (unigrams)
+    print (len(unigramProb))
+
     # This is for testing and tuning the model
     #tuneModel(unigramProb, bigramProb, trigramProb, quadgramProb, pentagramProb)
 
@@ -142,7 +146,7 @@ def buildVocabulary():
     total_vocab = []
     # First, we have to manually add control characters 0-31 (they are not a part of the named characters file)
     for i in range(0, 32):
-        total_vocab.append(unichr(i))
+        total_vocab.append(chr(i))
     # Next read the named characters from the file
     with open("DerivedNames.txt") as f:
         line = f.readline()
@@ -159,51 +163,49 @@ def buildVocabulary():
                     lower = int(split2[0], 16)
                     upper = int(split2[1], 16)
                     for i in range(lower, upper + 1):
-                        total_vocab.append(unichr(i))
+                        total_vocab.append(chr(i))
                 else: # The second case is a single value
                     number = int(split1[0], 16)
-                    total_vocab.append(unichr(number))
+                    total_vocab.append(chr(number))
                 line = f.readline()
-        print total_vocab[0]
-        print len(total_vocab)
         return total_vocab
 
 # NOTE: This function is not set up for the Project Dataset. It will not work until modified
 # TODO: replace the dev set in this function with the Project Dataset. Will not work until change is made
 # This function is used to calculate the perplexity of the model on a held out Dev Set
-def tuneModel(unigramProbs, bigramProbs, trigramProbs, quadgramProbs, pentagramProbs):
-    print "In tuning model function"
-
-    # Training set 0 - 9,452
-    # Dev set 9,452 - rowCount
-    # Read the sentences that are for the dev set
-    data = pd.read_table("umass_global_english_tweets-v1/all_annotated.tsv")
-    rowCount = data.shape[0]
-    devSentences = []
-    for i in range(9452, rowCount):
-        devSentences.append(unicode(data.iloc[i][3], "utf-8"))
-    print "length of dev sentences"
-    print len(devSentences)
-
-    # Now calculate the perplexity of the dev set
-    # First, the sum of the log probabilites
-    totalSymbols = 0.0
-    sumOfLog = 0.0
-    history = [unichr(2), unichr(2), unichr(2), unichr(2)]
-
-    for sentence in devSentences:
-        split = list(sentence)
-        for i in range(0, len(split)):
-            nextUni = split[i]
-            totalSymbols += 1
-            sumOfLog += calculateLogLikelihood(nextUni, history, unigramProbs, bigramProbs, trigramProbs, quadgramProbs, pentagramProbs)
-
-    # After we have gone through all the sentence, calculate the rest of the probability
-    termL = sumOfLog / totalSymbols
-    perplexity = math.pow(2, -termL)
-
-    print "This is the perplexity"
-    print perplexity
+# def tuneModel(unigramProbs, bigramProbs, trigramProbs, quadgramProbs, pentagramProbs):
+#     print "In tuning model function"
+#
+#     # Training set 0 - 9,452
+#     # Dev set 9,452 - rowCount
+#     # Read the sentences that are for the dev set
+#     data = pd.read_table("umass_global_english_tweets-v1/all_annotated.tsv")
+#     rowCount = data.shape[0]
+#     devSentences = []
+#     for i in range(9452, rowCount):
+#         devSentences.append(unicode(data.iloc[i][3], "utf-8"))
+#     print "length of dev sentences"
+#     print len(devSentences)
+#
+#     # Now calculate the perplexity of the dev set
+#     # First, the sum of the log probabilites
+#     totalSymbols = 0.0
+#     sumOfLog = 0.0
+#     history = [unichr(2), unichr(2), unichr(2), unichr(2)]
+#
+#     for sentence in devSentences:
+#         split = list(sentence)
+#         for i in range(0, len(split)):
+#             nextUni = split[i]
+#             totalSymbols += 1
+#             sumOfLog += calculateLogLikelihood(nextUni, history, unigramProbs, bigramProbs, trigramProbs, quadgramProbs, pentagramProbs)
+#
+#     # After we have gone through all the sentence, calculate the rest of the probability
+#     termL = sumOfLog / totalSymbols
+#     perplexity = math.pow(2, -termL)
+#
+#     print "This is the perplexity"
+#     print perplexity
 
 # Function for caclulating the log probability based on the data. Takes a unicode character, character history,
 # and all 5 ngram models
@@ -241,7 +243,7 @@ def calculateLogLikelihood(nextUni, history, unigramProbs, bigramProbs, trigramP
 
 # A function to test reading in the Unicode 10 characters. Only used for testing, not for building the Model
 def testAllUnicode10():
-    print "starting all unicode 10 test"
+    print ("starting all unicode 10 test")
 
     total_vocab = []
 
@@ -252,19 +254,19 @@ def testAllUnicode10():
             if line.startswith("#") or line.startswith("\n"):
                 line = f.readline()
             else:
-                print line
+                print (line)
                 split1 = line.split(";")
-                print split1
+                print (split1)
                 split2 = split1[0].split("..")
-                print split2
+                print (split2)
 
                 lower = int(split2[0], 16)
                 upper = int(split2[1], 16)
 
-                print "lower"
-                print hex(lower)
-                print "upper"
-                print hex(upper)
+                print ("lower")
+                print (hex(lower))
+                print ("upper")
+                print (hex(upper))
                 print ()
 
                 #if lower < int("FFFF", 16):
@@ -274,7 +276,7 @@ def testAllUnicode10():
 
                 line = f.readline()
 
-        print len(total_vocab)
+        print (len(total_vocab))
             # # scrap off the first character
             # seperated = line.split(";")
             # hex_string = seperated[0]
