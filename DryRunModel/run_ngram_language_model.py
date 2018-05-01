@@ -62,7 +62,6 @@ def main(argv):
             charToPrint = nextUni
             if nextUni == "\n":
                 charToPrint = u"NEWLINE"
-            # charToPrint = charToPrint.encode('utf-8')
             sys.stdout.write("// Added the character " + charToPrint + " to the history")
             sys.stdout.write("\n")
 
@@ -76,7 +75,6 @@ def main(argv):
             # Special case, if the character is a newline, need to update the input line
             if nextUni == "\n":
                 line = sys.stdin.readline()
-                #line = unicode(line, "utf-8")
                 splitLine = list(line)
                 index = -1
 
@@ -108,10 +106,6 @@ def main(argv):
                     selectedModel = i+1
             if selectedModel == 0:
                 selectedModel = 5
-
-            # TEST: esentially, generate with Katz Backoff
-            # Gonna leave it for now, just to make things a little easier
-            # selectedModel = 5
 
             # Now check if the selected model actual has that history as an ngram. If it does not, then
             # backoff to a lower order model
@@ -159,7 +153,6 @@ def main(argv):
             charToPrint = nextUni
             if nextUni == "\n":
                 charToPrint = u"NEWLINE"
-            #charToPrint = charToPrint.encode('utf-8')
             sys.stdout.write(charToPrint)
             sys.stdout.write(u"// Generated a character! Probability of generation " + str(logProb))
             sys.stdout.write(u"\n")
@@ -208,15 +201,15 @@ def calculateLogLikelihood(nextUni, history, unigramProbs, bigramProbs, trigramP
     # interpolate the probabilites
     totalProb = (uniAlpha * prob1) + (biAlpha * prob2) + (triAlpha * prob3) + (quadAlpha * prob4) + (pentaAlpha * prob5)
     # Take the log base 2 of that probability
-    # print nextUni.encode('utf-8')
-    if (totalProb == 0):
-        print ("ERROR: A probability is 0")
-        print ("The offending character is:")
-        print (nextUni)
-        print ("This is also the unicode value for it")
-        print (repr(nextUni))
-        print ("This is the character as an int")
-        print (int(nextUni))
+    # NOTE: This commented out code is code for testing
+    # if (totalProb == 0):
+    #     print ("ERROR: A probability is 0")
+    #     print ("The offending character is:")
+    #     print (nextUni)
+    #     print ("This is also the unicode value for it")
+    #     print (repr(nextUni))
+    #     print ("This is the character as an int")
+    #     print (int(nextUni))
     logProb = math.log(totalProb, 2)
     return logProb
 

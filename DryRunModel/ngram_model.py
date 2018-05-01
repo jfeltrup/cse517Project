@@ -16,10 +16,6 @@ from collections import Counter
 import pickle
 import math
 
-import unicodedata
-
-import pandas as pd
-
 # This variable controls whether the vocab is built from DerivedNames or Blocks.txt
 USE_NAMED = False
 
@@ -32,11 +28,7 @@ pentaAlpha = 0.3
 
 def main():
     print ("Start of program")
-
-    #buildVocabulary(USE_NAMED)
-    #processData()
     createModel()
-
     # Use this function for testing the Unicode 10 vocabulary
     #testAllUnicode10()
 
@@ -45,16 +37,16 @@ def main():
 # Reads in the training Data from a file, and converts it into a list of unicode sentences
 # This list of sentences is returned
 def processData():
-    f = open("dataset_april.txt")
+    f = open("dataset_april.txt", encoding="utf-8")
     sentences = []
     line = f.readline()
+    # Use count when you want to limit the number of lines read, for time
     count = 0
     while line:
-        #sentences.append(unicode(line, "utf-8"))
         sentences.append(line)
         line = f.readline()
         count += 1;
-        if count == 10000:
+        if count == 100000:
             break;
     return sentences
 
@@ -78,7 +70,12 @@ def createModel():
     # Now this is code that used the training data
     sentences = processData()
 
+    # Use count to keep track of progress
+    count = 0
     for sentence in sentences:
+        count += 1
+        if count % 1000 == 0:
+            print(count)
         # Split the sentence, then give a different padding for every length
         split = list(sentence)
         totalSymbolCount += len(split)
@@ -261,6 +258,7 @@ def calculateLogLikelihood(nextUni, history, unigramProbs, bigramProbs, trigramP
     logProb = math.log(totalProb, 2)
     return logProb
 
+# NOTE: This function is not used as a part of the model
 # A function to test reading in the Unicode 10 characters. Only used for testing, not for building the Model
 def testAllUnicode10():
     print ("starting all unicode 10 test")
@@ -279,23 +277,18 @@ def testAllUnicode10():
                 print (split1)
                 split2 = split1[0].split("..")
                 print (split2)
-
                 lower = int(split2[0], 16)
                 upper = int(split2[1], 16)
-
                 print ("lower")
                 print (hex(lower))
                 print ("upper")
                 print (hex(upper))
                 print ()
-
                 #if lower < int("FFFF", 16):
                     # now lets try and get characters in that range
                 for i in range(lower, upper+1):
                     total_vocab.append(i)
-
                 line = f.readline()
-
         print (len(total_vocab))
             # # scrap off the first character
             # seperated = line.split(";")
