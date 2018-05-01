@@ -208,15 +208,15 @@ def calculateLogLikelihood(nextUni, history, unigramProbs, bigramProbs, trigramP
     # interpolate the probabilites
     totalProb = (uniAlpha * prob1) + (biAlpha * prob2) + (triAlpha * prob3) + (quadAlpha * prob4) + (pentaAlpha * prob5)
     # Take the log base 2 of that probability
-    #print nextUni.encode('utf-8')
-    # if (totalProb == 0):
-    #     print "ERROR: A probability is 0"
-    #     print "The offending character is:"
-    #     print nextUni.encode('utf-8')
-    #     print "This is also the unicode value for it"
-    #     print repr(nextUni.encode('utf-8'))
-    #     print "This is the character as an int"
-    #     print int(nextUni)
+    # print nextUni.encode('utf-8')
+    if (totalProb == 0):
+        print ("ERROR: A probability is 0")
+        print ("The offending character is:")
+        print (nextUni)
+        print ("This is also the unicode value for it")
+        print (repr(nextUni))
+        print ("This is the character as an int")
+        print (int(nextUni))
     logProb = math.log(totalProb, 2)
     return logProb
 
