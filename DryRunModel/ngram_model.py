@@ -169,7 +169,6 @@ def buildVocabulary():
                     total_vocab.append(chr(number))
                 line = f.readline()
         # For testing purposes, manually adding 7F
-        total_vocab.append(chr(127))
         return total_vocab
 
 # NOTE: This function is not set up for the Project Dataset. It will not work until modified
