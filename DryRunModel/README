@@ -1,0 +1,55 @@
+Writeup
+Authors: John Feltrup, Kyungmin Jamie Park
+
+Description of the model:
+
+Due to the fact that this is a dry run, we decided to use one of our models from Assignment 1,
+modified to work with the larger unicode vocabulary.
+
+The model is an interpolated 5-gram model. The hyperparameters determining the weight of each of the ngrams was
+tuned on a held out dev set. An ngram model is one of the simpler models, but for the dry run we had time to take
+some of our work from assignment 1 and work with the larger vocabulary and new Dataset
+
+A Note on the Vocabulary:
+
+The project spec defines the vocabulary as V=136,690. This would be consistent with all the named characters
+in Unicode 10.0, but it does not quite match up with what we have done so far. It does not include control characters
+that we have used, and the tests for Assignment 1 include some characters from a Private Use Area in the BMP.
+
+So, to get close to vocab defined in the spec while still passing the tests, our vocabulary is V=146,896. This is
+all of Unicode 10.0, minus Surrogate blocks and Private Use Blocks outside of the BMP.
+
+Description of the Dataset:
+
+The Dataset is a 197 MB text file that is a mixture of books from the Gutenburg Project and Sentiment140 data
+from twitter. The books are largely in English and Chinese, as well as a few other languages. The Twitter data
+is a mixed bag
+
+The goal this mixed dataset is to have coverage over multiple languages, while being able to recognize natural
+text from the most likely languages (eg, English, Chinese). The goal of the book data is to recognize natural text.
+The Twitter data should help keep the perplexity, how surprised the model is, lower.
+
+
+Notes/Comments about the Dry Run:
+
+The model that we used for this Dry Run is simpler than the model that we intend to use for final project. We intend
+to build a Recurrent Neural Net (RNN) to model the language. We decided it was important to at least try and the
+dry run, and it puts us on the right path for the final.
+
+
+References
+
+* Project Gutenburg
+Citation:
+Project Gutenberg. (n.d.). Retrieved April 26, 2018, from www.gutenberg.org.
+
+* Sentiment140 Dataset
+
+Citation:
+Go, A., Bhayani, R. and Huang, L., 2009. Twitter sentiment classification using distant supervision.
+CS224N Project Report, Stanford, 1(2009), p.12
+
+* The nltk package (For natural language processing in Python)
+
+Citation:
+Bird, Steven, Edward Loper and Ewan Klein (2009), Natural Language Processing with Python. O’Reilly Media Inc.
