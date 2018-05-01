@@ -21,7 +21,7 @@ import unicodedata
 import pandas as pd
 
 # This variable controls whether the vocab is built from DerivedNames or Blocks.txt
-USE_NAMED = True
+USE_NAMED = False
 
 # Hyperparameters to test for interpolating the model
 uniAlpha = 0.2
@@ -186,7 +186,7 @@ def buildVocabulary(useNamed):
                     lower = int(split2[0], 16)
                     upper = int(split2[1], 16)
                     for i in range(lower, upper+1):
-                        total_vocab.append(i)
+                        total_vocab.append(chr(i))
                     line = f.readline()
             return total_vocab
 
