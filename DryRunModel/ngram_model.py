@@ -17,7 +17,7 @@ import pickle
 import math
 
 # This variable controls whether the vocab is built from DerivedNames or Blocks.txt
-USE_NAMED = False
+USE_NAMED = True
 
 # Hyperparameters to test for interpolating the model
 uniAlpha = 0.2
@@ -47,7 +47,7 @@ def processData():
         sentences.append(line)
         line = f.readline()
         count += 1;
-        if count == 100000:
+        if count == 1000000:
             break;
     return sentences
 
@@ -71,12 +71,33 @@ def createModel():
     # Now this is code that used the training data
     sentences = processData()
 
+    # TEST: See if this works to add up the probability
+    # Get the counts for each type of gram
+    unigramCount = Counter(unigrams)
+    bigramCount = Counter(bigrams)
+    trigramCount = Counter(trigrams)
+    quadgramCount = Counter(quadgrams)
+    pentagramCount = Counter(pentagrams)
+    # print("starting sentences")
+
     # Use count to keep track of progress
     count = 0
     for sentence in sentences:
         count += 1
-        if count % 1000 == 0:
+        if count % 10000 == 0:
             print(count)
+            unigramCount = unigramCount + Counter(unigrams)
+            bigramCount = bigramCount + Counter(bigrams)
+            trigramCount = trigramCount + Counter(trigrams)
+            quadgramCount = quadgramCount + Counter(quadgrams)
+            pentagramCount = pentagramCount + Counter(pentagrams)
+            # So I don't run out of memory, reset it every 1000
+            unigrams = []
+            bigrams = []
+            trigrams = []
+            quadgrams = []
+            pentagrams = []
+
         # Split the sentence, then give a different padding for every length
         split = list(sentence)
         totalSymbolCount += len(split)
@@ -91,12 +112,32 @@ def createModel():
         quadgrams += list(ngrams(split, 4))
         pentagrams += list(ngrams(split, 5))
 
+        # unigrams = split
+        # bigrams = list(ngrams(split, 2))
+        # trigrams = list(ngrams(split, 3))
+        # quadgrams = list(ngrams(split, 4))
+        # pentagrams = list(ngrams(split, 5))
+        #
+        # unigramCount = unigramCount + Counter(unigrams)
+        # bigramCount = bigramCount + Counter(bigrams)
+        # trigramCount = trigramCount + Counter(trigrams)
+        # quadgramCount = quadgramCount + Counter(quadgrams)
+        # pentagramCount = pentagramCount + Counter(pentagrams)
+
+        #print (count)
+
     # Get the counts for each type of gram
-    unigramCount = Counter(unigrams)
-    bigramCount = Counter(bigrams)
-    trigramCount = Counter(trigrams)
-    quadgramCount = Counter(quadgrams)
-    pentagramCount = Counter(pentagrams)
+    # unigramCount = Counter(unigrams)
+    # bigramCount = Counter(bigrams)
+    # trigramCount = Counter(trigrams)
+    # quadgramCount = Counter(quadgrams)
+    # pentagramCount = Counter(pentagrams)
+
+    # print (len(unigramCount))
+    # print (len(bigramCount))
+    # print (len(trigramCount))
+    # print (len(quadgramCount))
+    # print (len(pentagramCount))
 
     # Calculate the probability for each type of gram
     unigramProb = {}
@@ -148,6 +189,9 @@ def buildVocabulary(useNamed):
         # First, we have to manually add control characters 0-31 (they are not a part of the named characters file)
         for i in range(0, 32):
             total_vocab.append(chr(i))
+        # Second, we add the control characters from 007F - 009F
+        for i in range(127, 160):
+            total_vocab.append(chr(i))
         # Next read the named characters from the file
         with open("DerivedNames.txt") as f:
             line = f.readline()
@@ -170,6 +214,7 @@ def buildVocabulary(useNamed):
                         total_vocab.append(chr(number))
                     line = f.readline()
             # For testing purposes, manually adding 7F
+            print(len(total_vocab))
             return total_vocab
     else:
         total_vocab = []
