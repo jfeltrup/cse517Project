@@ -91,6 +91,25 @@ def lineToTensor(line):
         tensor[li][0][CharacterToIndex(character)] = 1
     return tensor
 
+## prepare the data
+
+# One-hot matrix of first to last letters (not including EOS) for input
+def inputTensor(line):
+    tensor = torch.zeros(len(line), 1, vocab_size)
+    for li in range(len(line)):
+        letter = line[li]
+        tensor[li][0][vocabulary.find(letter)] = 1
+    return tensor
+
+# LongTensor of second letter to end (EOS) for target
+def targetTensor(line):
+    letter_indexes = [vocabulary.find(line[li]) for li in range(1, len(line))]
+    letter_indexes.append(3) # EOS
+    return torch.LongTensor(letter_indexes)
+
+
+
+
 
 # Define the model
 
@@ -119,6 +138,8 @@ class RNN_LSTM(nn.Module):
         output = self.softmax(output)
         return output
 
+
+
 # Train the model
 
 def main():
@@ -137,16 +158,16 @@ def main():
     print ("Read and preprocess the data")
     
     text_lines = readLines(FILE_PATH)
-    tensors = []
+    training_data = []
+    
     for line in text_lines:
-        line_tensor = lineToTensor(line)
-        tensors.append(line_tensor)
+        training_data.append((inputTensor(line), targetTensor(line)))
 
     ## Train the model
     print ("Train the model")
 
     for epoch in range(n_epoch):
-        for tensor in tensors:
+        for char, nex_char in training_data:
             # Clear the accumulates gradients out before each instance
             model.zero_grad()
             
@@ -154,12 +175,12 @@ def main():
             model.hidden = model.init_hidden()
             
             # Run our forward pass.
-            probabilities = model(tensor)
+            next_char_prob = model(char)
             
             # Compute the loss, gradients, and update the parameters by
             #  calling optimizer.step()
             ###########this step is not finished
-            loss = loss_function(tag_scores, targets)
+            loss = loss_function(next_char_prob, next_char)
             loss.backward()
             optimizer.step()
 
