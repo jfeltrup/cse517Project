@@ -5,7 +5,7 @@ def main():
     sentences = processData()
 
     # Print the sentences to a new files
-    f = open("small_dataset_100.txt", "w");
+    f = open("small_dataset_5.txt", "w");
     for sentence in sentences:
         f.write(sentence)
 
@@ -24,7 +24,7 @@ def processData():
         sentences.append(line)
         line = f.readline()
         count += 1;
-        if count == 100:
+        if count == 5:
             break;
     return sentences
 

@@ -48,7 +48,7 @@ def buildVocabulary():
 
 
 # File path for training data
-FILE_PATH = "small_dataset_20.txt"
+FILE_PATH = "small_dataset_5.txt"
 
 # Path for saving/loading the model
 MODEL_PATH = "lstm_model_save.p"
@@ -61,8 +61,8 @@ n_character = 136755  # Hard code in for testing
 # Model Parameters
 INPUT_DIM = n_character
 OUTPUT_DIM = n_character
-HIDDEN_DIM = 50  # TBD
-n_epoch = 10  # 50
+HIDDEN_DIM = 10  # TBD
+n_epoch = 5  # 50
 
 # Use this variable to determine whether we want to create a new lstm_model, or load it from a file
 LOAD_MODEL = False;
@@ -123,7 +123,9 @@ def main():
 
     ## Save the model
     print("Save the model")
-    # torch.save(model, MODEL_PATH)
+    torch.save(model, MODEL_PATH)
+    # Saves only model parameters
+    #torch.save(model.state_dict(), MODEL_PATH)
 
 
 ### Read a file and split into lines
@@ -171,9 +173,9 @@ class RNN_LSTM(nn.Module):
         self.lstm = nn.LSTM(input_dim, hidden_dim)
         self.h2o = nn.Linear(hidden_dim, vocab_size)
         self.hidden = self.init_hidden()
-        self.o2o = nn.Linear(hidden_dim + output_dim, output_dim)
+        # self.o2o = nn.Linear(hidden_dim + output_dim, output_dim)
         # Should we do this?
-        self.dropout = nn.Dropout(0.1)
+        # self.dropout = nn.Dropout(0.1)
         self.softmax = nn.LogSoftmax(dim=1)
 
     def init_hidden(self):
