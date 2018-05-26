@@ -11,6 +11,14 @@ import torch.nn as nn
 import torch.optim as optim
 from io import open
 
+USE_GPU = False
+# Set up the GPU part of the code
+device = None
+if USE_GPU:
+    device = torch.device('cuda')
+else:
+    device = torch.device('cpu')
+
 
 # Prepare the vocabulary using unicode files
 def buildVocabulary():
@@ -78,9 +86,9 @@ def main():
     print("Building Model")
     model = None
     if LOAD_MODEL:
-        model = torch.load(MODEL_PATH)
+        model = torch.load(MODEL_PATH).cuda()
     else:
-        model = RNN_LSTM(INPUT_DIM, HIDDEN_DIM, OUTPUT_DIM)
+        model = RNN_LSTM(INPUT_DIM, HIDDEN_DIM, OUTPUT_DIM).to(device=device)
     print("Finished Building Model")
     loss_function = nn.NLLLoss()
     optimizer = optim.SGD(model.parameters(), lr=0.1)
@@ -141,7 +149,7 @@ def CharacterToIndex(character):
 
 ### Turn a line into an array of one-hot letter vectors
 def lineToTensor(line):
-    tensor = torch.zeros(len(line), 1, vocab_size)
+    tensor = torch.zeros(len(line), 1, vocab_size).to(device=device)
     for li, character in enumerate(line):
         tensor[li][0][CharacterToIndex(character)] = 1
     return tensor
@@ -151,7 +159,7 @@ def lineToTensor(line):
 
 # One-hot matrix of first to last letters (not including EOS) for input
 def inputTensor(line):
-    tensor = torch.zeros(len(line), 1, vocab_size)
+    tensor = torch.zeros(len(line), 1, vocab_size).to(device=device)
     for li in range(len(line)):
         letter = line[li]
         tensor[li][0][vocabulary.index(letter)] = 1
@@ -162,7 +170,7 @@ def inputTensor(line):
 def targetTensor(line):
     letter_indexes = [vocabulary.index(line[li]) for li in range(1, len(line))]
     letter_indexes.append(3)  # EOS
-    return torch.LongTensor(letter_indexes)
+    return torch.LongTensor(letter_indexes).to(device=device)
 
 
 # Define the model
