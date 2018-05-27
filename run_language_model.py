@@ -58,6 +58,9 @@ HIDDEN_DIM = 10  # TBD
 # Path for saving/loading the model
 MODEL_PATH = "lstm_model_save.p"
 
+# Defines the max length of the history (currently not being used)
+HISTORY_LENGTH = 10
+
 def main(argv):
     # Make the model, then load only the parameters
     model = RNN_LSTM(INPUT_DIM, HIDDEN_DIM, OUTPUT_DIM)
@@ -89,6 +92,8 @@ def main(argv):
             else: # Otherwise append the character to the history
                 history.append(nextUni)
             # TODO: If the size of history becomes a problem, we can put a length cap on it
+            # if len(history) > HISTORY_LENGTH:
+            #     del history[0]
             
             # Output to stdout so we know what is going on
             charToPrint = nextUni
@@ -120,7 +125,6 @@ def main(argv):
             logProb = output[len(history) - 1][index]
             # Then, convert that log to log base 2
             logProb = logProb / math.log(2)
-            print("This is the log base 2 probability: " + str(logProb))
             
             # Write the output to standardout (it needs .data.numpy() for formatting)
             sys.stdout.write(str(logProb.data.numpy()))
@@ -162,7 +166,10 @@ def main(argv):
             sys.stdout.write(charToPrint)
             sys.stdout.write(u"// Generated a character! Probability of generation " + str(logProb.data.numpy()))
             sys.stdout.write(u"\n")
+            # Add the generated character to the history
             history.append(nextUni)
+            # if len(history) > HISTORY_LENGTH:
+            #     del history[0]
             commandIndex += 1
             command = splitLine[commandIndex]
         elif command == "x":

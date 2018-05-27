@@ -154,8 +154,9 @@ def lineToTensor(line):
 
 # One-hot matrix of first to last letters (not including EOS) for input
 def inputTensor(line):
-    tensor = torch.zeros(len(line), 1, vocab_size).to(device=device)
-    for li in range(len(line)):
+    tensor = torch.zeros(len(line)+1, 1, vocab_size).to(device=device)
+    tensor[0][0][2] = 1 # START character
+    for li in range(1, len(line)):
         letter = line[li]
         tensor[li][0][vocabulary.index(letter)] = 1
     return tensor
@@ -163,7 +164,7 @@ def inputTensor(line):
 
 # LongTensor of second letter to end (EOS) for target
 def targetTensor(line):
-    letter_indexes = [vocabulary.index(line[li]) for li in range(1, len(line))]
+    letter_indexes = [vocabulary.index(line[li]) for li in range(0, len(line))] # starting from 0, for START character
     letter_indexes.append(3)  # EOS
     return torch.LongTensor(letter_indexes).to(device=device)
 
