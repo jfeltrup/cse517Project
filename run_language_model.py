@@ -1,9 +1,9 @@
-#!/usr/bin/env python2
 # -*- coding: utf-8 -*-
 """
 Created on Thu May 17 14:34:43 2018
 
 @author: jamie
+@author: John Feltrup 
 """
 import torch
 import torch.nn as nn
@@ -24,7 +24,7 @@ def buildVocabulary():
     for i in range(127, 160):
         total_vocab.append(chr(i))
     # Next read the named characters from the file
-    with open("DerivedNames.txt") as f:
+    with open("DerivedNames.txt", encoding='utf-8') as f:
         line = f.readline()
         while line:
             if line.startswith("#") or line.startswith("\n"):

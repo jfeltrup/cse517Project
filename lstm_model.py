@@ -128,6 +128,8 @@ def main():
     ## Save the model
     print("Save the model parameters")
     # Saves only model parameters
+    # Move the model on to the CPU, because it needs to be saved to the cpu to run on the CPU
+    model.cpu()
     torch.save(model.state_dict(), MODEL_PATH)
 
 
