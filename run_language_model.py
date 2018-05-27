@@ -62,6 +62,9 @@ MODEL_PATH = "lstm_model_save.p"
 HISTORY_LENGTH = 10
 
 def main(argv):
+    # Seed the random number generator
+    random.seed(argv[0])
+
     # Make the model, then load only the parameters
     model = RNN_LSTM(INPUT_DIM, HIDDEN_DIM, OUTPUT_DIM)
     model.load_state_dict(torch.load(MODEL_PATH))
