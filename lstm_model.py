@@ -11,7 +11,7 @@ import torch.nn as nn
 import torch.optim as optim
 from io import open
 
-USE_GPU = False
+USE_GPU = True
 # Set up the GPU part of the code
 device = None
 if USE_GPU:
@@ -51,7 +51,7 @@ def buildVocabulary():
                     total_vocab.append(chr(number))
                 line = f.readline()
         # For testing purposes, manually adding 7F
-        print(len(total_vocab))
+        print("Vocab size: " + str(len(total_vocab)))
         return total_vocab
 
 
@@ -63,30 +63,27 @@ MODEL_PATH = "lstm_model_save.p"
 
 # Declaring vocabulary variables to be used as globals
 vocabulary = buildVocabulary()
-vocab_size = 136755  # Hard code in for testing
-n_character = 136755  # Hard code in for testing
+vocab_size = len(vocabulary)
 
 # Model Parameters
-INPUT_DIM = n_character
-OUTPUT_DIM = n_character
+INPUT_DIM = vocab_size
+OUTPUT_DIM = vocab_size
 HIDDEN_DIM = 10  # TBD
 n_epoch = 5  # 50
 
 # Use this variable to determine whether we want to create a new lstm_model, or load it from a file
-LOAD_MODEL = False;
+LOAD_MODEL = False
 
 
 # Train the model
 def main():
     print("Start of program")
 
-    # vocabulary = buildVocabulary()
-    vocab_size = len(vocabulary)
-
     print("Building Model")
     model = None
     if LOAD_MODEL:
-        model = torch.load(MODEL_PATH).cuda()
+        model = RNN_LSTM(INPUT_DIM, HIDDEN_DIM, OUTPUT_DIM).to(device=device)
+        model.load_state_dict(torch.load(MODEL_PATH))
     else:
         model = RNN_LSTM(INPUT_DIM, HIDDEN_DIM, OUTPUT_DIM).to(device=device)
     print("Finished Building Model")
@@ -124,16 +121,14 @@ def main():
 
             # Compute the loss, gradients, and update the parameters by
             #  calling optimizer.step()
-            ###########this step is not finished
             loss = loss_function(next_char_prob, next_char)
             loss.backward()
             optimizer.step()
 
     ## Save the model
-    print("Save the model")
-    torch.save(model, MODEL_PATH)
+    print("Save the model parameters")
     # Saves only model parameters
-    #torch.save(model.state_dict(), MODEL_PATH)
+    torch.save(model.state_dict(), MODEL_PATH)
 
 
 ### Read a file and split into lines
@@ -181,7 +176,6 @@ class RNN_LSTM(nn.Module):
         self.lstm = nn.LSTM(input_dim, hidden_dim)
         self.h2o = nn.Linear(hidden_dim, vocab_size)
         self.hidden = self.init_hidden()
-        # self.o2o = nn.Linear(hidden_dim + output_dim, output_dim)
         # Should we do this?
         # self.dropout = nn.Dropout(0.1)
         self.softmax = nn.LogSoftmax(dim=1)
@@ -194,8 +188,6 @@ class RNN_LSTM(nn.Module):
     def forward(self, input):
         # Character input one hot vector
         lstm_out, self.hidden = self.lstm(input, self.hidden)
-        # TODO: Double check these lines. I replaced the code using "embed" so I am not 100%
-        # sure that is is what we want to do
         output = self.h2o(lstm_out.view(len(input), -1))
         # output = self.dropout(output)
         output = self.softmax(output)

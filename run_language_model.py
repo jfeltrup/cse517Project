@@ -44,37 +44,24 @@ def buildVocabulary():
                     number = int(split1[0], 16)
                     total_vocab.append(chr(number))
                 line = f.readline()
-        # For testing purposes, manually adding 7F
-        print(len(total_vocab))
         return total_vocab
 
 
 # Declaring vocabulary variables to be used as globals
 vocabulary = buildVocabulary()
-vocab_size = 136755
+vocab_size = len(vocabulary)
 
-INPUT_DIM = 136755
-OUTPUT_DIM = 136755
+INPUT_DIM = vocab_size
+OUTPUT_DIM = vocab_size
 HIDDEN_DIM = 10  # TBD
 
+# Path for saving/loading the model
+MODEL_PATH = "lstm_model_save.p"
+
 def main(argv):
-
-    # TEMP
-    print("Starting program")
-
-    vocab_size = len(vocabulary)
-
-    # TEMP
-    print("Loading Model")
-    
-    #    print ("Load the model")
-    model = torch.load("lstm_model_save.p")
-
-    # Loads only the model parameters
-    #model = RNN_LSTM(INPUT_DIM, HIDDEN_DIM, OUTPUT_DIM)
-
-    # TEMP
-    print("Loaded Model")
+    # Make the model, then load only the parameters
+    model = RNN_LSTM(INPUT_DIM, HIDDEN_DIM, OUTPUT_DIM)
+    model.load_state_dict(torch.load(MODEL_PATH))
 
     history = [chr(2)]
     # Read in the input, make sure to treat it as unicode
@@ -96,11 +83,12 @@ def main(argv):
                 splitLine = list(line)
                 commandIndex = -1
             
-            # If it is the stop symbol, clear the history
+            # If it is the stop symbol, clear the history (Just the start character)
             if nextUni == chr(3):
                 history = [chr(2)]
             else: # Otherwise append the character to the history
                 history.append(nextUni)
+            # TODO: If the size of history becomes a problem, we can put a length cap on it
             
             # Output to stdout so we know what is going on
             charToPrint = nextUni
@@ -109,10 +97,6 @@ def main(argv):
             sys.stdout.write("// Added the character " + charToPrint + " to the history")
             sys.stdout.write("\n")
 
-            print("History is now: " + str(history))
-
-            # TODO: Maybe put a cap on the size of the history? cut if off at a certain point
-            
             # Then get the next command
             commandIndex += 1
             command = splitLine[commandIndex]
@@ -126,15 +110,6 @@ def main(argv):
                 splitLine = list(line)
                 commandIndex = -1
         
-            # Now, we calculate the probability for each model
-            # Prob = model(history)
-            # logProb=math.log(Prob, 2)
-            #
-            # index = CharacterToIndex(nextUni)
-
-            # This is a test. Turn the history into an input tensor then try it
-            # Okay, good to know that this works
-
             # Add the character to the history, turn it into a tensor, and run the model
             history.append(nextUni)
             input = inputTensor(history)
@@ -143,29 +118,20 @@ def main(argv):
             # Now, fetch the log probability for that character
             index = CharacterToIndex(nextUni)
             logProb = output[len(history) - 1][index]
-            print("This is the log probability of the character: " + str(logProb))
             # Then, convert that log to log base 2
             logProb = logProb / math.log(2)
             print("This is the log base 2 probability: " + str(logProb))
-
-            # This is a little excessive for the formatting, but if it works I won't complain
-            print("This is the value formatted: " + str(logProb.data.numpy()))
-            # Then print it out
             
-            # Write the output to standardout
+            # Write the output to standardout (it needs .data.numpy() for formatting)
             sys.stdout.write(str(logProb.data.numpy()))
             sys.stdout.write("\n")
 
             # Then make sure that the character is removed from the history
             history = history[:-1]
-
-            print("updated history: " + str(history))
     
             # then process the next character
             commandIndex += 1
-
             command = splitLine[commandIndex]
-
         elif command == 'g':
             # Randomly generate the next character given the distribution
             input = inputTensor(history)
@@ -174,11 +140,8 @@ def main(argv):
             randNum = random.random()
             selectedIndex = 0
             cdf = 0
-            # TODO: Does this work? I really don't know
-            print("this is the original random number: " + str(randNum))
-            #randNum = math.log(randNum)
-            #print("this is the log of the random number: " + str(randNum))
-            #print("this is how we undo the log prob: " + str(math.pow(math.e, randNum)))
+            # Using the random number, pick the character it generates
+            # TODO: If this is too slow, then we can just pick the top 100-ish and go from there
             for i in range(0, len(output[len(history) - 1])):
                 if cdf >= randNum:
                     break
@@ -186,15 +149,14 @@ def main(argv):
                     selectedIndex += 1
                     cdf += math.pow(math.e, output[len(history) - 1][i])
 
-            print("this is the selected index: " + str(selectedIndex))
+            # Get the new character
             nextUni = vocabulary[selectedIndex]
             charToPrint = nextUni
-
+            # Get the log prob, and calculate the base 2 log prob
             logProb = output[len(history) - 1][selectedIndex]
-            print("This is the log probability of the character: " + str(logProb))
             logProb = logProb / math.log(2)
-            print("This is the log base 2 probability: " + str(logProb))
 
+            # Print the character along with the log base 2 prob of generating it
             if nextUni == "\n":
                 charToPrint = u"NEWLINE"
             sys.stdout.write(charToPrint)
@@ -233,7 +195,6 @@ class RNN_LSTM(nn.Module):
         self.lstm = nn.LSTM(input_dim, hidden_dim)
         self.h2o = nn.Linear(hidden_dim, vocab_size)
         self.hidden = self.init_hidden()
-        # self.o2o = nn.Linear(hidden_dim + output_dim, output_dim)
         # Should we do this?
         # self.dropout = nn.Dropout(0.1)
         self.softmax = nn.LogSoftmax(dim=1)
@@ -246,8 +207,6 @@ class RNN_LSTM(nn.Module):
     def forward(self, input):
         # Character input one hot vector
         lstm_out, self.hidden = self.lstm(input, self.hidden)
-        # TODO: Double check these lines. I replaced the code using "embed" so I am not 100%
-        # sure that is is what we want to do
         output = self.h2o(lstm_out.view(len(input), -1))
         # output = self.dropout(output)
         output = self.softmax(output)
