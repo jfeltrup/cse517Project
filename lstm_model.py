@@ -188,8 +188,8 @@ class RNN_LSTM(nn.Module):
 
     def init_hidden(self):
         # The axes semantics are (num_layers, minibatch_size, hidden_dim)
-        return (torch.zeros(1, 1, self.hidden_dim),
-                torch.zeros(1, 1, self.hidden_dim))
+        return (torch.zeros(1, 1, self.hidden_dim).to(device=device),
+                torch.zeros(1, 1, self.hidden_dim).to(device=device))
 
     def forward(self, input):
         # Character input one hot vector
