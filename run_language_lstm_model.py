@@ -56,10 +56,10 @@ OUTPUT_DIM = vocab_size
 HIDDEN_DIM = 50 # 50 is the size of the largest model
 
 # Path for saving/loading the model
-MODEL_PATH = "saved_model_large.p"
+MODEL_PATH = "saved_model_HundredThousand.p"
 
-# Defines the max length of the history (currently not being used)
-HISTORY_LENGTH = 10
+# Defines the max length of the history
+HISTORY_LENGTH = 15
 
 def main(argv):
     # Seed the random number generator
@@ -95,8 +95,8 @@ def main(argv):
             else: # Otherwise append the character to the history
                 history.append(nextUni)
             # TODO: If the size of history becomes a problem, we can put a length cap on it
-            # if len(history) > HISTORY_LENGTH:
-            #     del history[0]
+            if len(history) > HISTORY_LENGTH:
+                del history[0]
             
             # Output to stdout so we know what is going on
             charToPrint = nextUni
@@ -144,17 +144,24 @@ def main(argv):
             input = inputTensor(history)
             output = model(input)
 
+            # Method 1: Generate the character properly from the distribution
             randNum = random.random()
             selectedIndex = 0
             cdf = 0
             # Using the random number, pick the character it generates
-            # TODO: If this is too slow, then we can just pick the top 100-ish and go from there
             for i in range(0, len(output[len(history) - 1])):
                 if cdf >= randNum:
                     break
                 else:
                     selectedIndex += 1
                     cdf += math.pow(math.e, output[len(history) - 1][i])
+
+            # Method 2: Pick the top K characters, and choose one of them
+            # Note that the generation looks pretty bad doing this
+            # k = 10
+            # top_n, top_i = output.topk(k)
+            # randNum = random.randint(0, k-1)
+            # selectedIndex = top_i[len(history) - 1][randNum]
 
             # Get the new character
             nextUni = vocabulary[selectedIndex]
@@ -171,8 +178,8 @@ def main(argv):
             sys.stdout.write(u"\n")
             # Add the generated character to the history
             history.append(nextUni)
-            # if len(history) > HISTORY_LENGTH:
-            #     del history[0]
+            if len(history) > HISTORY_LENGTH:
+                del history[0]
             commandIndex += 1
             command = splitLine[commandIndex]
         elif command == "x":
