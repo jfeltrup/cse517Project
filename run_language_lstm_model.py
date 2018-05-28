@@ -53,10 +53,10 @@ vocab_size = len(vocabulary)
 
 INPUT_DIM = vocab_size
 OUTPUT_DIM = vocab_size
-HIDDEN_DIM = 10  # TBD
+HIDDEN_DIM = 50 # 50 is the size of the largest model
 
 # Path for saving/loading the model
-MODEL_PATH = "lstm_model_save.p"
+MODEL_PATH = "saved_model_large.p"
 
 # Defines the max length of the history (currently not being used)
 HISTORY_LENGTH = 10

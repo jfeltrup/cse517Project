@@ -56,10 +56,13 @@ def buildVocabulary():
 
 
 # File path for training data
-FILE_PATH = "small_dataset_5.txt"
+FILE_PATH = "dataset_april.txt"
+# These are the lines in the file to read 
+LINE_START = 0 # inclusive
+LINE_END = 50000 # exclusive
 
 # Path for saving/loading the model
-MODEL_PATH = "lstm_model_save.p"
+MODEL_PATH = "saved_model_HundredThousand.p"
 
 # Declaring vocabulary variables to be used as globals
 vocabulary = buildVocabulary()
@@ -68,8 +71,8 @@ vocab_size = len(vocabulary)
 # Model Parameters
 INPUT_DIM = vocab_size
 OUTPUT_DIM = vocab_size
-HIDDEN_DIM = 10  # TBD
-n_epoch = 5  # 50
+HIDDEN_DIM = 50  # TBD
+n_epoch = 10  # 50
 
 # Use this variable to determine whether we want to create a new lstm_model, or load it from a file
 LOAD_MODEL = False
@@ -96,8 +99,9 @@ def main():
     text_lines = readLines(FILE_PATH)
     training_data = []
 
-    for line in text_lines:
-        training_data.append((inputTensor(line), targetTensor(line)))
+    # Can't fit all the tensors in memory right away
+    # for line in text_lines:
+    #     training_data.append((inputTensor(line), targetTensor(line)))
 
     ## Train the model
     print("Train the model")
@@ -106,24 +110,37 @@ def main():
         #print the current epoch
         print("this is epoch:" + str(epoch))
         count = 0
-        for char, next_char in training_data:
-            # Print the current line of the file we are reading
-            count += 1
-            print("line count: " + str(count))
-            # Clear the accumulates gradients out before each instance
-            model.zero_grad()
+        while count < len(text_lines):
+            # In an epoch, we need to work with only 100 text lines as tensors at a time, or we run out of memory
+            if count % 100 == 0:
+                training_data = []
+                for line in range(count, count+100):
+                    training_data.append((inputTensor(text_lines[line]), targetTensor(text_lines[line])))
 
-            # Clear out the hidden state of the LSTM,
-            model.hidden = model.init_hidden()
+            for char, next_char in training_data:
+                # Print the current line of the file we are reading
+                count += 1
+                if count % 100 == 0:
+                    print("line count: " + str(count))
+                # Clear the accumulates gradients out before each instance
+                model.zero_grad()
 
-            # Run our forward pass.
-            next_char_prob = model(char)
+                # Clear out the hidden state of the LSTM,
+                model.hidden = model.init_hidden()
 
-            # Compute the loss, gradients, and update the parameters by
-            #  calling optimizer.step()
-            loss = loss_function(next_char_prob, next_char)
-            loss.backward()
-            optimizer.step()
+                # Run our forward pass.
+                next_char_prob = model(char)
+
+                # Compute the loss, gradients, and update the parameters by
+                #  calling optimizer.step()
+                loss = loss_function(next_char_prob, next_char)
+                loss.backward()
+                optimizer.step()
+        # Save the model parameters every epoch. It doesn't hurt, and will help if things crash
+        print("Saving parameters at end of epoch")
+        model.cpu()
+        torch.save(model.state_dict(), MODEL_PATH)
+        model.to(device=device)
 
     ## Save the model
     print("Save the model parameters")
@@ -136,7 +153,12 @@ def main():
 ### Read a file and split into lines
 def readLines(filename):
     lines = open(filename, encoding='utf-8').read().strip().split('\n')
-    return [line for line in lines]
+    # return [line for line in lines]
+
+    # This will determine the number of lines read from the file
+    lines = lines[LINE_START:LINE_END]
+    print("number of lines: " + str(len(lines)))
+    return lines
 
 
 ### Turn characters into tensors
