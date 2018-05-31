@@ -9,4 +9,4 @@ fi
 # Replace the following with a call to your own program.
 
 # Run the language model
-python3 run_unigram_language_model.py $1
+python3 run_ngram_language_model.py $1

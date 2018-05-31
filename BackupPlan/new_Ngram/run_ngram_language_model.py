@@ -1,15 +1,20 @@
 # -*- coding: utf-8 -*-
 
 # John Feltrup
+# Jamie Park
 # Spring Quarter 2018
 # CSE 517 Natural Language Processing
 #
-# Test Test simpilest model, so we have something to turn in
+# A interpolated trigram Model
 
 import sys
 import random
 import pickle
 import math
+
+uniAlpha = 0.4
+biAlpha = 0.3
+triAlpha = 0.3
 
 def main(argv):
     # Seed the random number generator
@@ -17,10 +22,14 @@ def main(argv):
 
     # De-pickle the models
     unigramProbs = pickle.load(open("unigram_pickle.p", "rb"))
+    bigramProbs = pickle.load(open("bigram_pickle.p", "rb"))
+    trigramProbs = pickle.load(open("trigram_pickle.p", "rb"))
+
+    # Now, set up the history and reading from standard input
+    history = [chr(2), chr(2)]
 
     # Read in the input, make sure to treat it as unicode
     line = sys.stdin.readline()
-    #line = unicode(line, "utf-8")
     splitLine = list(line)
     index = 0
     command = splitLine[index]
@@ -37,6 +46,13 @@ def main(argv):
                 splitLine = list(line)
                 index = -1
             #print nextUni
+
+            # If it is the stop symbol, clear the history
+            if nextUni == chr(3):
+                history = [chr(2), chr(2)]
+            else: # Otherwise append the character to the history
+                del history[0]
+                history.append(nextUni)
 
             # Output to stdout so we know what is going on
             charToPrint = nextUni
@@ -58,8 +74,18 @@ def main(argv):
                 splitLine = list(line)
                 index = -1
 
-            # Now, we calculate the probability for each model
-            logProb = math.log(unigramProbs[nextUni], 2)
+            # Now, we calculate the probability for each model, then interpolate them
+            prob1 = unigramProbs[nextUni]
+            bigram = (history[1], nextUni)
+            prob2 = 0
+            if bigram in bigramProbs:
+                prob2 = bigramProbs[bigram]
+            trigram = (history[0], history[1], nextUni)
+            prob3 = 0
+            if trigram in trigramProbs:
+                prob3 = trigramProbs[trigram]
+            # Take the probability to log base 2
+            logProb = math.log((uniAlpha * prob1 + biAlpha * prob2 + triAlpha * prob3), 2)
 
             # Write the output to standardout
             sys.stdout.write(str(logProb))
@@ -73,10 +99,39 @@ def main(argv):
 
             # Now, generate a character based on the model
             nextUni = None
-            nextUni = unigramGenerator(unigramProbs)
 
-            # Then get the log prob for that unicode character
-            logProb = math.log(unigramProbs[nextUni], 2)
+             # This generator first tries to generate from the trigram, then the bigram, then the unigram
+            check_random = 0.0
+            randNum = random.random()
+            for trigram in trigramProbs:
+                if trigram[0] == history[0] and trigram[1] == history[1]:
+                    if check_random + trigramProbs[trigram] > randNum:
+                        nextUni = trigram[2]
+                        break
+                    else:
+                        check_random += trigramProbs[trigram]
+            if nextUni == None:
+                for bigram in bigramProbs:
+                    if bigram[0] == history[1]:
+                        if check_random + bigramProbs[bigram] > randNum:
+                            nextUni = bigram[1]
+                            break
+                        else:
+                            check_random += bigramProbs[bigram]
+            if nextUni == None:
+                nextUni = unigramGenerator(unigramProbs)
+
+            # Now, we calculate the of that character
+            prob1 = unigramProbs[nextUni]
+            bigram = (history[1], nextUni)
+            prob2 = 0
+            if bigram in bigramProbs:
+                prob2 = bigramProbs[bigram]
+            trigram = (history[0], history[1], nextUni)
+            prob3 = 0
+            if trigram in trigramProbs:
+                prob3 = trigramProbs[trigram]
+            logProb = math.log((uniAlpha * prob1 + biAlpha * prob2 + triAlpha * prob3), 2)
 
             # Write the character and log probability to standard out
             charToPrint = nextUni
@@ -85,6 +140,10 @@ def main(argv):
             sys.stdout.write(charToPrint)
             sys.stdout.write(u"// Generated a character! Probability of generation " + str(logProb))
             sys.stdout.write(u"\n")
+
+            # Then add the character to the history
+            del history[0]
+            history.append(nextUni)
 
             # Get the next command
             index += 1
@@ -101,29 +160,18 @@ def main(argv):
 
 # Generates the next character based on a unigram model and the given history
 def unigramGenerator(unigramProbs):
-    # Spread the unigram choices between 0 and 1
-    unigramLine = []
-    firstGram = True
-    index = 0
-    probSum = 0
-    for gram in unigramProbs:
-        if firstGram:
-            firstGram = False
-            unigramLine.append((gram, probSum))
-        else:
-            unigramLine.append((gram, probSum))
-        probSum += unigramProbs[gram]
-        index += 1
-
-    # Generate a random number between 0 and 1. Use this number to select a character
+    check_random = 0.0
     randNum = random.random()
-    nextUni = None
-    for i in range(0, len(unigramLine) - 1):
-        if randNum >= unigramLine[i][1] and randNum < unigramLine[i + 1][1]:
-            nextUni = unigramLine[i][0]
-    if nextUni == None:
-        nextUni = unigramLine[len(unigramLine) - 1][0]
-    return nextUni
+    for gram in unigramProbs:
+        if check_random + unigramProbs[gram] > randNum:
+            nextUni = gram
+            return nextUni
+        else:
+            check_random += unigramProbs[gram]
+    # Shouldn't return in this case
+    return chr(0)
+
+
 
 if __name__ == '__main__':
     main(sys.argv[1:])
